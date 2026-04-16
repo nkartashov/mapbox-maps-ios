@@ -30,7 +30,25 @@ extension TileStore: TileStoreProtocol {
         guard filePathURL.isFileURL else {
             fatalError("You must provide a file URL")
         }
-        return TileStore.__create(forPath: filePathURL.path)
+        // If setRootPathForPath fails because we already have TileStore initialized with the different path,
+        // we already log error in the native code.
+        TileStore.__setRootPathForPath(filePathURL.path)
+        return TileStore.__create()
+    }
+
+    /// Configure the path on disk where tiles and metadata will be stored. This path will be used by create() method as a default location.
+    /// Method should be invoked before TileStore instance creation. In case TileStore already created with another path method will have no
+    /// effect and error will be logged.
+    ///
+    /// If root path was set before to another value, the data from the previous location is not copied.
+    /// Setting is not persistent.
+    ///
+    /// - Parameter filePathURL: The path on disk where tiles and metadata will be stored
+    public static func setRootPath(_ filePathURL: URL) {
+        guard filePathURL.isFileURL else {
+            fatalError("You must provide a file URL")
+        }
+        TileStore.__setRootPathForPath(filePathURL.path)
     }
 
     /// Loads a new tile region or updates the existing one.
