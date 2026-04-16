@@ -19,11 +19,10 @@ final class OfflineManagerIntegrationTestCase: IntegrationTestCase {
     func setupTileStoreAndOfflineManager() throws {
         tileRegionId = "tile-region-\(name)"
 
-        // TileStore
-        tileStorePathURL = try temporaryCacheDirectory()
-
-        // Cache the created tile store
-        tileStore = TileStore.shared(for: tileStorePathURL)
+        tileStore = TileStore.default
+        let ss = SettingsServiceFactory.getInstance(storageType: SettingsServiceStorageType.nonPersistent)
+        let pathResult = ss.getForKey("com.mapbox.common.tilestore.location")
+        tileStorePathURL = pathResult.isValue() ? (pathResult.value as? String).flatMap({ URL(string: $0) }) : nil
 
         MapboxMapsOptions.dataPath = tileStorePathURL
         MapboxMapsOptions.tileStore = tileStore
@@ -45,19 +44,33 @@ final class OfflineManagerIntegrationTestCase: IntegrationTestCase {
     }
 
     override func tearDownWithError() throws {
+        // Remove tile region before releasing the tile store to prevent
+        // stale regions from leaking into subsequent tests.
+        if let tileStore = tileStore, !tileRegionId.isEmpty {
+            let removeExpectation = expectation(description: "Remove tile region")
+            tileStore.removeTileRegion(forId: tileRegionId)
+            // Force eviction of tile data, then restore default quota
+            tileStore.setOptionForKey(TileStoreOptions.diskQuota, value: 0)
+            tileStore.allTileRegions { _ in
+                removeExpectation.fulfill()
+            }
+            wait(for: [removeExpectation], timeout: 10.0)
+            tileStore.setOptionForKey(TileStoreOptions.diskQuota, value: NSNull())
+        }
+
         tileRegionLoadOptions = nil
         offlineManager = nil
         tileStore = nil
-        clearMapData()
-        try super.tearDownWithError()
-    }
 
-    private func clearMapData() {
-        let expectation = self.expectation(description: "Clear map data")
+        let clearDataExpectation = expectation(description: "Clear map data")
         MapboxMapsOptions.clearData { _ in
-            expectation.fulfill()
+            clearDataExpectation.fulfill()
         }
-        wait(for: [expectation], timeout: 10.0)
+        wait(for: [clearDataExpectation], timeout: 10.0)
+
+        tileStorePathURL = nil
+
+        try super.tearDownWithError()
     }
 
     // MARK: Test Cases

@@ -15,14 +15,32 @@ class OfflineGuideIntegrationTests: XCTestCase {
     override func setUpWithError() throws {
         try super.setUpWithError()
 
-        tileStorePathURL = try temporaryCacheDirectory()
-        tileStore = TileStore.shared(for: tileStorePathURL)
+        tileStore = TileStore.default
+        let ss = SettingsServiceFactory.getInstance(storageType: SettingsServiceStorageType.nonPersistent)
+        let pathResult = ss.getForKey("com.mapbox.common.tilestore.location")
+        tileStorePathURL = pathResult.isValue() ? (pathResult.value as? String).flatMap({ URL(string: $0) }) : nil
     }
 
     override func tearDownWithError() throws {
         try super.tearDownWithError()
 
+        // Remove all tile regions to prevent stale regions from leaking
+        // into subsequent tests.
+        let cleanupExpectation = expectation(description: "Tile regions cleanup")
+        tileStore.allTileRegions { result in
+            if case let .success(regions) = result {
+                for region in regions {
+                    self.tileStore.removeTileRegion(forId: region.id)
+                }
+            }
+            self.tileStore.setOptionForKey(TileStoreOptions.diskQuota, value: 0)
+            self.tileStore.setOptionForKey(TileStoreOptions.diskQuota, value: NSNull())
+            cleanupExpectation.fulfill()
+        }
+        wait(for: [cleanupExpectation], timeout: 10.0)
+
         tileStore = nil
+        MapboxMapsOptions.tileStore = nil
     }
 
     // Test StylePackLoadOptions

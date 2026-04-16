@@ -5,6 +5,16 @@ import UIKit
 
 class AttributionTests: XCTestCase {
 
+    override func tearDownWithError() throws {
+        let clearDataExpectation = expectation(description: "Clear map data")
+        MapboxMapsOptions.clearData { _ in
+            clearDataExpectation.fulfill()
+        }
+        wait(for: [clearDataExpectation], timeout: 10.0)
+        MapboxMapsOptions.tileStore = nil
+        try super.tearDownWithError()
+    }
+
     func testActionableAttributionParsing() {
         let attributionsHTML = """
   <a href=\"https://www.mapbox.com/about/maps/\" target=\"_blank\" title=\"Mapbox\" aria-label=\"Mapbox\" role=\"listitem\">&copy; Mapbox</a>
