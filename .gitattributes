@@ -1,6 +1,6 @@
 #
 *.pbxproj merge=union
-CHANGELOG.md merge=union
+CHANGELOG.md merge=union linguist-language=Markdown
 
 # Mark files as generated in Github PRs
 **/Generated/** linguist-generated=true
