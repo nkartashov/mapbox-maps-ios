@@ -105,13 +105,25 @@ final class FeaturesetsTests: IntegrationTestCase {
         wait(for: [poiQRFExp, poiFilteredExp, poiQRFViewportExp], timeout: 10.0)
     }
 
-    func testFeatureStateMethods() throws {
+    @available(*, deprecated)
+    func testDeprecatedGeoJsonFeatureInitializer() {
         let geoJsonFeature = Feature(geometry: Point(CLLocationCoordinate2D(latitude: 0.01, longitude: 0.01)))
         let feature = FeaturesetFeature(
             id: FeaturesetFeatureId(id: "11", namespace: "A"),
             featureset: .featureset("poi", importId: "nested"),
             geoJsonFeature: geoJsonFeature,
             state: .init())
+        XCTAssertEqual(feature.originalFeature, geoJsonFeature)
+    }
+
+    func testFeatureStateMethods() throws {
+        let originalFeature = Feature(geometry: Point(CLLocationCoordinate2D(latitude: 0.01, longitude: 0.01)))
+        let feature = FeaturesetFeature(
+            id: FeaturesetFeatureId(id: "11", namespace: "A"),
+            featureset: .featureset("poi", importId: "nested"),
+            originalFeature: originalFeature,
+            state: .init())
+        XCTAssertEqual(feature.originalFeature, originalFeature)
         let poiFeature = try XCTUnwrap(StandardPoiFeature(from: feature))
 
         let setStateExp = expectation(description: "state exp")

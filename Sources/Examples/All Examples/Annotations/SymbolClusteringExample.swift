@@ -170,25 +170,27 @@ final class SymbolClusteringExample: UIViewController, ExampleProtocol {
         return numberLayer
     }
 
-    // Shows cluster or hydrant info. Returns false if couldn't parse data.
     private func handleTap(feature: FeaturesetFeature) -> Bool {
         let selectedFeatureProperties = feature.properties
         if case let .string(featureInformation) = selectedFeatureProperties["ASSETNUM"],
            case let .string(location) = selectedFeatureProperties["LOCATIONDETAIL"] {
             showAlert(withTitle: "Hydrant \(featureInformation)", and: "\(location)")
-            // If the feature is a cluster, it will have `point_count` and `cluster_id` properties.
-            // These are assigned when the cluster is created.
             return true
         }
 
-        if case let .number(pointCount) = selectedFeatureProperties["point_count"],
-           case let .number(clusterId) = selectedFeatureProperties["cluster_id"],
-           case let .number(maxFlow) = selectedFeatureProperties["max"],
-           case let .number(sum) = selectedFeatureProperties["sum"],
-           case let .boolean(in_e9) = selectedFeatureProperties["in_e9"] {
-            // If the tap landed on a cluster, pass the cluster ID and point count to the alert.
-            let inEngineNine = in_e9 ? "Some hydrants belong to Engine 9." : "No hydrants belong to Engine 9."
-            showAlert(withTitle: "Cluster ID \(Int(clusterId))", and: "There are \(Int(pointCount)) hydrants in this cluster. The highest water flow is \(Int(maxFlow)) and the collective flow is \(Int(sum)). \(inEngineNine)")
+        if case .number = selectedFeatureProperties["point_count"] {
+            mapView.mapboxMap.getGeoJsonClusterExpansionZoom(
+                forSourceId: "fire-hydrant-source",
+                feature: feature.originalFeature
+            ) { [weak self] result in
+                if case let .success(value) = result,
+                   let zoom = value.value as? Double {
+                    self?.mapView.camera.fly(to: CameraOptions(
+                        center: feature.geometry.point?.coordinates,
+                        zoom: zoom
+                    ))
+                }
+            }
             return true
         }
         return false

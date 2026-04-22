@@ -4,6 +4,9 @@ Mapbox welcomes participation and contributions from everyone.
 
 ## main
 
+## Features ✨ and improvements 🏁
+* Expose `FeaturesetFeature.originalFeature` property.
+
 ## 11.23.0-rc.1 - 20 April, 2026
 * Use TileStore::setRootPath(path) and TileStore::create() instead of deprecated TileStore::create(path).
 * Add setRootPath method to TileStore swift wrapper.

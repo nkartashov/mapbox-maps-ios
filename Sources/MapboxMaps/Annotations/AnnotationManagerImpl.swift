@@ -409,7 +409,7 @@ final class AnnotationManagerImpl<AnnotationType: Annotation & AnnotationInterna
                 return false
             }
             self.queryToken = mapFeatureQueryable
-                .getAnnotationClusterContext(sourceId: id, feature: feature.geoJsonFeature, context: context) { result in
+                .getAnnotationClusterContext(sourceId: id, feature: feature.originalFeature, context: context) { result in
                     if case let .success(clusterContext) = result {
                         callback(clusterContext)
                     }

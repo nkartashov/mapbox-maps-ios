@@ -16,12 +16,23 @@ struct ClusteringExample: View {
     }
 
     @State var details: Detail?
+    @State var viewport: Viewport = .camera(center: .dc, zoom: 10)
 
     var body: some View {
         MapReader { proxy in
-            Map(initialViewport: .camera(center: .dc, zoom: 10)) {
-                TapInteraction(.layer(Id.clusterCircle)) { feature, _ in
-                    details = Detail(feature: feature)
+            Map(viewport: $viewport) {
+                TapInteraction(.layer(Id.clusterCircle)) { feature, context in
+                    proxy.map?.getGeoJsonClusterExpansionZoom(
+                        forSourceId: Id.source,
+                        feature: feature.originalFeature
+                    ) { result in
+                        if case let .success(value) = result,
+                           let zoom = value.value as? Double {
+                            withViewportAnimation(.easeIn(duration: 0.5)) {
+                                viewport = .camera(center: context.coordinate, zoom: zoom)
+                            }
+                        }
+                    }
                     return true
                 }
 

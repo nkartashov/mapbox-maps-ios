@@ -73,10 +73,10 @@ final public class FeaturesetFeature: FeaturesetFeatureType {
     public let featureset: FeaturesetDescriptor<FeaturesetFeature>
 
     /// A feature geometry.
-    public var geometry: Geometry { geoJsonFeature.geometry! }
+    public var geometry: Geometry { originalFeature.geometry! }
 
     /// Feature JSON properties.
-    public var properties: JSONObject { geoJsonFeature.properties ?? [:] }
+    public var properties: JSONObject { originalFeature.properties ?? [:] }
 
     /// A feature state.
     ///
@@ -84,7 +84,11 @@ final public class FeaturesetFeature: FeaturesetFeatureType {
     /// To update and read the original state, use ``MapboxMap/setFeatureState(_:state:callback:)`` and ``MapboxMap/getFeatureState(_:callback:)``.
     public let state: JSONObject
 
-    let geoJsonFeature: Feature
+    /// The original GeoJSON feature.
+    ///
+    /// This is useful for passing to cluster-related methods such as ``MapboxMap/getGeoJsonClusterExpansionZoom(forSourceId:feature:completion:)``.
+    /// For accessing feature data prefer using ``geometry``, ``properties``, etc.
+    public let originalFeature: Feature
 
     /// Creates a feature.
     ///
@@ -92,18 +96,29 @@ final public class FeaturesetFeature: FeaturesetFeatureType {
     /// - Parameters:
     ///   - id: An optional feature id.
     ///   - featureset: A featureset descriptor
-    ///   - geoJsonFeature: An underlying feature.
+    ///   - originalFeature: An underlying GeoJSON feature.
     ///   - state: A snapshot of the feature state
     public init(
+        id: FeaturesetFeatureId?,
+        featureset: FeaturesetDescriptor<FeaturesetFeature>,
+        originalFeature: Feature,
+        state: State
+    ) {
+        self.id = id
+        self.featureset = featureset
+        self.originalFeature = originalFeature
+        self.state = state
+    }
+
+    /// Creates a feature.
+    @available(*, deprecated, renamed: "init(id:featureset:originalFeature:state:)")
+    public convenience init(
         id: FeaturesetFeatureId?,
         featureset: FeaturesetDescriptor<FeaturesetFeature>,
         geoJsonFeature: Feature,
         state: State
     ) {
-        self.id = id
-        self.featureset = featureset
-        self.geoJsonFeature = geoJsonFeature
-        self.state = state
+        self.init(id: id, featureset: featureset, originalFeature: geoJsonFeature, state: state)
     }
 
     /// Converts a generic feature to the typed one.
@@ -112,18 +127,20 @@ final public class FeaturesetFeature: FeaturesetFeatureType {
     ///    - other: A generic feature.
     @_documentation(visibility: public)
     public convenience required init?(from other: FeaturesetFeature) {
-        self.init(id: other.id, featureset: other.featureset, geoJsonFeature: other.geoJsonFeature, state: other.state)
+        self.init(
+            id: other.id, featureset: other.featureset, originalFeature: other.originalFeature, state: other.state)
     }
 
     convenience init(queriedFeature: QueriedFeature, featureset: FeaturesetDescriptor<FeaturesetFeature>) {
-        let state = (queriedFeature.state as? JSONObject.TurfRawValue).flatMap {
-            JSONObject(turfRawValue: $0)
-        } ?? [:]
+        let state =
+            (queriedFeature.state as? JSONObject.TurfRawValue).flatMap {
+                JSONObject(turfRawValue: $0)
+            } ?? [:]
 
         self.init(
             id: queriedFeature.featuresetFeatureId.map(FeaturesetFeatureId.init(core:)),
             featureset: featureset,
-            geoJsonFeature: queriedFeature.feature,
+            originalFeature: queriedFeature.feature,
             state: state)
     }
 }
