@@ -1,5 +1,5 @@
 import XCTest
-import MapboxCoreMaps
+@_spi(Internal) import MapboxCoreMaps
 @testable import MapboxMaps
 
 final class ImageTests: XCTestCase {

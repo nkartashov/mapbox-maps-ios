@@ -1,6 +1,7 @@
 import XCTest
 import CoreLocation
 import UIKit
+@_spi(Internal) import MapboxCoreMaps
 @testable import MapboxMaps
 
 class MapboxMapsFoundationTests: XCTestCase {

@@ -1,5 +1,5 @@
 import os.log
-@_spi(Marshalling) import MapboxCoreMaps
+@_spi(Marshalling) @_spi(Internal) import MapboxCoreMaps
 
 struct MountedLayer<L>: MapContentMountedComponent where L: Layer, L: Equatable {
     var layer: L

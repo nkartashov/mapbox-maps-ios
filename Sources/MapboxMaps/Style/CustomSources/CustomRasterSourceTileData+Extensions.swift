@@ -1,3 +1,4 @@
+@_spi(Internal) import MapboxCoreMaps
 import UIKit
 
 extension CustomRasterSourceTileData {

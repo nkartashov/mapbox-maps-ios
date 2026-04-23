@@ -1,5 +1,5 @@
 import UIKit
-@_spi(Marshalling) import MapboxCoreMaps
+@_spi(Marshalling) @_spi(Internal) import MapboxCoreMaps
 
 /// Map color theme.
 ///
