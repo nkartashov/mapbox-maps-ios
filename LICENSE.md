@@ -638,7 +638,7 @@ SOFTWARE.
 
 ---
 
-### protozero,1.7.1,BSD-2-Clause,Mapbox,https://github.com/mapbox/protozero
+### protozero,v1.8.1,BSD-2-Clause,Mapbox,https://github.com/mapbox/protozero
 
 ```
 Copyright (C) 2022, Mapbox.

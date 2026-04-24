@@ -1,5 +1,7 @@
 import Foundation
 @_implementationOnly import MapboxCommon_Private
+@_implementationOnly import MapboxCoreMaps_Private
+@_spi(Marshalling) import MapboxCoreMaps
 
 struct RuntimeStylingCallbacks {
     typealias Action = () -> Void
@@ -231,6 +233,33 @@ internal protocol StyleManagerProtocol {
 // MARK: Conformance
 
 extension CoreStyleManager: StyleManagerProtocol {
+    func getStyleImage(forImageId imageId: String) -> CoreMapsImage? {
+        let image: MapboxCoreMaps_Private.__MBXImage? = getStyleImage(forImageId: imageId)
+        return image.flatMap { MBXImage.Marshaller.toSwift($0) }
+    }
+
+    func updateStyleImageSourceImage(forSourceId sourceId: String, image: CoreMapsImage) -> Expected<NSNull, NSString> {
+        let image: MapboxCoreMaps_Private.__MBXImage = MBXImage.Marshaller.toObjc(image)
+        return updateStyleImageSourceImage(
+            forSourceId: sourceId,
+            image: image
+        )
+    }
+
+    // swiftlint:disable:next function_parameter_count
+    func addStyleImage(forImageId imageId: String, scale: Float, image: CoreMapsImage, sdf: Bool, stretchX: [ImageStretches], stretchY: [ImageStretches], content: ImageContent?) -> Expected<NSNull, NSString> {
+        let image: MapboxCoreMaps_Private.__MBXImage = MBXImage.Marshaller.toObjc(image)
+        return addStyleImage(
+            forImageId: imageId,
+            scale: scale,
+            image: image,
+            sdf: sdf,
+            stretchX: stretchX,
+            stretchY: stretchY,
+            content: content
+        )
+    }
+
     func setStyleURI(_ uri: String, callbacks: RuntimeStylingCallbacks) {
         load(style: uri, isJson: false, callbacks: callbacks)
     }
