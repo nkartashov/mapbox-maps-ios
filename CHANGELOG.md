@@ -6,7 +6,6 @@ Mapbox welcomes participation and contributions from everyone.
 
 ## Features ✨ and improvements 🏁
 * Expose `FeaturesetFeature.originalFeature` property.
-### Features ✨ and improvements 🏁
 * Add `GestureOptions.singleTapRequiresDoubleTapToFail` so apps can allow single-tap gestures to resolve without waiting for double-tap zoom recognition.
 
 ## 11.23.0-rc.1 - 20 April, 2026
